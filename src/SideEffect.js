@@ -1,38 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export function useSafeSetInterval() {
-  const [handler, setHandler] = useState(0);
+  const handlers = useRef([]);
   const safeSetInterval = (func, interval) => {
-    setHandler(setInterval(func, interval));
+    handlers.current = [...handlers.current, (setInterval(func, interval))];
   };
 
   useEffect(() => {
-    return () => {
-      if (handler > 0)
-        clearInterval(handler);
-    };
-  }, [handler]);
+    return () => handlers.current.forEach(clearInterval);
+  }, []);
 
   return safeSetInterval;
 }
 
 export function useSafeSetTimeout() {
-  const [handler, setHandler] = useState(0);
+  const handlers = useRef([]);
   const safeSetTimeout = (func, interval) => {
-    setHandler(setTimeout(func, interval));
+    handlers.current = [...handlers.current, (setTimeout(func, interval))];
   };
 
   useEffect(() => {
-    return () => {
-      if (handler > 0)
-        clearTimeout(handler);
-    };
-  }, [handler]);
+    return () => handlers.current.forEach(clearTimeout);
+  }, []);
 
   return safeSetTimeout;
 }
 
-export function useSafeFetch(...args) {
+export function useSafeFetch() {
+  const controllers = useRef([]);
+  const safeFetch = (resource, options = {}) => {
+    const abortController = new AbortController();
+    controllers.current = [...controllers.current, abortController];
+    return fetch(resource, { ...options, signal: abortController.signal });
+  };
+
+  useEffect(() => {
+    return () => controllers.current.forEach(controller => controller.abort());
+  }, []);
+
+  return safeFetch;
+}
+
+export function useSafeFetchDeps(...args) {
   const [controller, setController] = useState(null);
   const safeFetch = (resource, options = {}) => {
     const abortController = new AbortController();
@@ -48,22 +57,20 @@ export function useSafeFetch(...args) {
 }
 
 export function useSafeListener() {
-  const [events, setEvents] = useState([]);
+  const events = useRef([]);
   const func = (eventName, handler) => {
-    if (events.every(event => event.eventName !== eventName))
-      setEvents([...events, { eventName, handler }]);
+    if (events.current.every(event => event.eventName !== eventName))
+      window.addEventListener(eventName, handler);
+      events.current = [...events.current, { eventName, handler }];
   };
 
   useEffect(() => {
-    for (let event of events) {
-      window.addEventListener(event.eventName, event.handler);
-    }
     return () => {
-      for (let event of events) {
+      for (let event of events.current) {
         window.removeEventListener(event.eventName, event.handler);
       }
     };
-  }, [events]);
+  }, []);
 
   return func;
 }

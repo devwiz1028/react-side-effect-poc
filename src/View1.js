@@ -9,7 +9,7 @@ const View1 = () => {
   const safeSetTimeout = useSafeSetTimeout();
 
   useEffect(() => {
-    startTimer1();
+    startTimer2();
   }, []);
 
   const startTimer1 = () => {
@@ -17,6 +17,10 @@ const View1 = () => {
       console.log('View 1 - ', gCounter);
       setCounter(++gCounter);
     }, 1000);
+    safeSetInterval(() => {
+      console.log('View 1 - ', gCounter);
+      setCounter(++gCounter);
+    }, 2000);
   };
 
   const startTimer2 = () => {
@@ -25,6 +29,11 @@ const View1 = () => {
       console.log('View 1 - ', gCounter);
       setCounter(gCounter);
     }, 5000);
+    safeSetTimeout(() => {
+      gCounter += 20;
+      console.log('View 1 - ', gCounter);
+      setCounter(gCounter);
+    }, 8000);
   };
 
   return (

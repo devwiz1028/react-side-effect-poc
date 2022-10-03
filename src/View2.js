@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useSafeFetch } from './SideEffect';
+import { useSafeFetch, useSafeFetchDeps } from './SideEffect';
 
 const View2 = () => {
-  const [list, setList] = useState([]);
+  const [weather, setWeather] = useState({});
   const [index, setIndex] = useState(0);
-  const safeFetch = useSafeFetch(index);
+  const safeFetch = useSafeFetch();
 
   useEffect(() => {
     let url = '';
     if (index === 1) {
-      url = 'https://goweather.herokuapp.com/weather/Curitiba';
+      url = 'https://api.weather.gov/alerts/active?area=KS';
     } else if (index === 2) {
-      url = 'https://goweather.herokuapp.com/weather/Brazil';
+      url = 'https://api.weather.gov/alerts/active?area=CA';
     }
 
     if (url)
@@ -21,9 +21,9 @@ const View2 = () => {
   const startFetch = async (url) => {
     try {
       const response = await safeFetch(url);
-      const newList = await response.json();
-      setList(newList);
-      console.log(newList);
+      const newWeather = await response.json();
+      setWeather(newWeather);
+      console.log(newWeather);
     }
     catch (e) {
       console.log(e);
@@ -33,7 +33,7 @@ const View2 = () => {
   return (
     <div>
       <div>View 2</div>
-      <div>{JSON.stringify(list)}</div>
+      <div>{JSON.stringify(weather)}</div>
       <button onClick={() => setIndex(1)}>Load 1</button>
       <button onClick={() => setIndex(2)}>Load 2</button>
     </div>
